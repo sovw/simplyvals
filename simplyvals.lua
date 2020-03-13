@@ -226,8 +226,19 @@ Custom.TextWrapped = true
 
 close.MouseButton1Down:Connect(function() Main:Destroy() end)
 
-for i,v in pairs(PlaceHolder:GetChildren()) do print(v.Name) end
-
+function ReadUpValues(module)
+	for a, b in next, require(module) do
+    if type(b) == "function" then
+        for c, d in next, debug.getupvalues(b,a) do
+				for i,v in ipairs(d) do
+					return "Read table: ".. tostring(d)
+				end
+				return d
+            end
+        end
+    end
+	end
+	
 local plr = game.Players.LocalPlayer
 local mouse = plr:GetMouse()
 local mod = nil
@@ -239,12 +250,25 @@ local function LoadValues(Module)
 		local r = PlaceHolder:Clone()
 		r.Position = UDim2.new(0,0,0,pos)
 		r.Name_.Text = tostring(a)
-		local to_decode = tostring(b)
 		r.Value.Text = tostring(b)
 		if r.Value.TextFits == false then r.Value.TextScaled = true end
 		r.Parent = Editor
         r.Visible = true
 		pos = pos + 20
+		if string.match(r.Value.Text:sub(1,8),"function") then
+			local a = ReadUpValues(mod)
+			for i,v in pairs(a) do
+				local r = PlaceHolder:Clone()
+				r.Position = UDim2.new(20,0,0,pos)
+				r.Name_.Text = tostring(i)
+				r.Value.Text = tostring(v)
+				r.Value.Size = UDim2.new(0,216,0,20)
+				if r.Value.TextFits == false then r.Value.TextScaled = true end
+				r.Parent = Editor
+       			r.Visible = true
+				pos = pos + 20
+			end
+		end
 	end
 end
 
@@ -323,19 +347,6 @@ local GetPath = function(Instance)
  
     return (error and "nil" or table.concat(string, ""))
 end
-
-function ReadUpValues(module)
-	for a, b in next, require(module) do
-    if type(b) == "function" then
-        for c, d in next, debug.getupvalues(b) do
-            if type(d) == "table" then
-                setreadonly(d, false)
-            end
-            return tostring(c), tostring(d)
-        end
-    end
-end
-end
 	
 clear.MouseButton1Down:Connect(function()
 	Editor:ClearAllChildren()
@@ -349,12 +360,7 @@ generate.MouseButton1Down:Connect(function()
 		if not string.match(value:sub(1,1),"1") and not string.match(value:sub(1,1),"2") and not string.match(value:sub(1,1),"3") and not string.match(value:sub(1,1),"4") and not string.match(value:sub(1,1),"5") and not string.match(value:sub(1,1),"6") and not string.match(value:sub(1,1),"7") and not string.match(value:sub(1,1),"8") and not string.match(value:sub(1,1),"9") and not string.match(value:sub(1,1),"0") and not string.match(value:sub(1,4),"true") and not string.match(value:sub(1,5),"false")and not string.match(value:sub(1,9),"math.huge") then
 		value = "'"..v.Value.Text.."'"
 		end
-		print(value:sub(1,8))
-		if string.match(value:sub(1,8),"function") then
-			print(ReadUpValues(mod))
-		end
 		string = string.."\nA_1['"..name.."'] = "..value
 	end
 	setclipboard(string)
-	syn_clipboard_set(string)
 end)
